@@ -14,23 +14,25 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setup(F_button_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 def main():
+    currentState = b'O'
     while True:
+        previousState = currentState
         states.readSensors()
 
         if states.current_in_temp >= states.min_temp and states.current_in_temp <= states.max_temp:
-            states.off()
+            currentState = b'O'
         elif states.current_in_temp < states.min_temp:
-            states.heating()
+            currentState = b'H'
         elif states.current_in_temp > states.max_temp:
-            states.cooling()
+            currentState = b'C'
 
-        states.controlAirCond()
+        if currentState != previousState:
+            states.sendAirCondCommand(currentState)
 
-        print(states.current_in_temp)
         if GPIO.input(F_button_pin) == GPIO.HIGH:
             break
-        time.sleep(1)
+        time.sleep(0.1)
 
 if __name__ == "__main__":
     main()
-    states.off()
+    states.stop()
