@@ -52,19 +52,18 @@ void checkAirCond(){
 }
 
 void calculeCurrentTemp(){
-  if(air_cond_command == 'O' and door_state == 0)
-    temp_change_rate = 0.1;
-  else if(air_cond_command == 'O' and door_state == 1)
+  if(air_cond_command == 'O')
     temp_change_rate = 0.0;
-  else if(air_cond_command == 'H' and door_state == 0)
-    temp_change_rate = 1.1;
-  else if(air_cond_command == 'H' and door_state == 1)
+  else if(air_cond_command == 'H')
     temp_change_rate = 1.0;
-  else if(air_cond_command == 'C' and door_state == 0)
-    temp_change_rate = -0.9;
-  else if(air_cond_command == 'C' and door_state == 1)
+  else if(air_cond_command == 'C')
     temp_change_rate = -1.0;
 
+  if(door_state == 0 && current_temp < 25.0)
+    temp_change_rate+=0.1;
+  else if(door_state == 0 && current_temp > 25.0)
+    temp_change_rate-=0.1;
+   
   current_temp+=(temp_change_rate/60.0);
 }
 

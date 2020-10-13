@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      background-image: url('/static/images/background/layout.svg');
+      background-repeat: no-repeat;
+    }
+
+    .min_up_btn {
+      position: absolute;
+      top: 496px;
+      left: 1050px;
+
+      height:30px;
+      width:20px;
+      background-image: url('/static/images/icons/up.svg');
+      background-repeat: no-repeat;
+      border-color: #FFFFFF;
+    }
+
+    .max_up_btn {
+      position: absolute;
+      top: 496px;
+      left: 1170px;
+
+      height:30px;
+      width:20px;
+      background-image: url('/static/images/icons/up.svg');
+      background-repeat: no-repeat;
+      border-color: #FFFFFF;
+    }
+
+    .min_down_btn {
+      position: absolute;
+      top: 603px;
+      left: 1050px;
+
+      height:30px;
+      width:20px;
+      background-image: url('/static/images/icons/down.svg');
+      background-repeat: no-repeat;
+      border-color: #FFFFFF;
+    }
+
+    .max_down_btn {
+      position: absolute;
+      top: 603px;
+      left: 1170px;
+
+      height:30px;
+      width:20px;
+      background-image: url('/static/images/icons/down.svg');
+      background-repeat: no-repeat;
+      border-color: #FFFFFF;
+    }
+
+    .min_lbl{
+      position: absolute;
+      top: 547px;
+      left: 1041px;
+
+      font-family: "helvetica";
+      font-size: 30px;
+      font-weight: bold;
+      color: #2899FC;
+    }
+
+    .max_lbl{
+      position: absolute;
+      top: 547px;
+      left: 1161px;
+
+      font-family: "helvetica";
+      font-size: 30px;
+      font-weight: bold;
+      color: #2899FC;
+    }
+
+  </style>
+</head>
+<body>
+  <form method ="post" action="/">
+    <button class="min_up_btn" name="range_change_button" value="min_up"></button>
+    <button class="max_up_btn" name="range_change_button" value="max_up"></button>
+    <button class="min_down_btn" name="range_change_button" value="min_down"></button>
+    <button class="max_down_btn" name="range_change_button" value="max_down"></button>
+  </form>
+
+  {% if min %}
+  <label class="min_lbl">{{min}}</label>
+  {% endif %}
+
+  {% if max %}
+  <label class="max_lbl">{{max}}</label>
+  {% endif %}
+
+</body>
+</html>
