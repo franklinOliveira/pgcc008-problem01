@@ -46,9 +46,11 @@ ICACHE_RAM_ATTR void doorModDetectISR() {
 void checkAirCond(){
   if(ControlSystem.available() > 0){
     char incomingByte = ControlSystem.read();
+    
     if(incomingByte == 'O' || incomingByte == 'H' || incomingByte == 'C')
       air_cond_command = incomingByte;
   }
+  
 }
 
 void calculeCurrentTemp(){
