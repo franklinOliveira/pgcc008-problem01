@@ -2,7 +2,7 @@ import AWSIoTPythonSDK.MQTTLib as AWSIoTPyMQTT
 
 class Mqtt():
     MQTTClient = None
-    dataSubscribed = [0,0,b'O',0]
+    dataSubscribed = [0,0,0,0]
 
     def __init__(self):
         ROOT_PATH = "/home/franklin/Desktop/Projetos/pgcc008-problem01/web-application/resources/"
@@ -26,8 +26,17 @@ class Mqtt():
             self.dataSubscribed[1] = float(message.payload.decode("utf-8"))
         elif message.topic == "pgcc008/problem01/sensor/internal/air_cond_state":
             self.dataSubscribed[2] = message.payload.decode("utf-8")
+            if self.dataSubscribed[2] == 'O':
+                self.dataSubscribed[2] = 0
+            elif self.dataSubscribed[2] == 'H':
+                self.dataSubscribed[2] = 1
+            elif self.dataSubscribed[2] == 'C':
+                self.dataSubscribed[2] = -1
+
         elif message.topic == "pgcc008/problem01/sensor/external/temperature":
             self.dataSubscribed[3] = float(message.payload.decode("utf-8"))
+
+        print(message.payload.decode("utf-8"),"lido de",message.topic)
 
     def connect(self):
         self.MQTTClient.connect()
@@ -37,3 +46,4 @@ class Mqtt():
 
     def publish(self, topic, data):
         self.MQTTClient.publish(topic, data, 1)
+        print(data, "publicado em", topic)

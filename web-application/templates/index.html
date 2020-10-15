@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta http-equiv="refresh" content="1">
+
   <style>
     body {
       background-image: url('/static/images/background/layout.svg');
@@ -77,10 +79,90 @@
       color: #2899FC;
     }
 
+    .in_temp_lbl{
+      position: absolute;
+      top: 335px;
+      left: 965px;
+
+      font-family: "helvetica";
+      font-size: 30px;
+      font-weight: bold;
+      color: #2899FC;
+    }
+
+    .in_hum_lbl{
+      position: absolute;
+      top: 335px;
+      left: 1048px;
+
+      font-family: "helvetica";
+      font-size: 30px;
+      font-weight: bold;
+      color: #2899FC;
+    }
+
+    .in_air_cond_state_lbl{
+      position: absolute;
+      top: 335px;
+      left: 1135px;
+
+      font-family: "helvetica";
+      font-size: 30px;
+      font-weight: bold;
+      color: #2899FC;
+    }
+
+    .ex_temp_lbl{
+      position: absolute;
+      top: 335px;
+      left: 1235px;
+
+      font-family: "helvetica";
+      font-size: 30px;
+      font-weight: bold;
+      color: #2899FC;
+    }
+
+    .in_temp_fig{
+      position: absolute;
+      top: 78px;
+      left: 30px;
+
+      width: 29%; /* Will shrink image to 30% of its original width */
+      height: auto;
+    }
+
+    .in_hum_fig{
+      position: absolute;
+      top: 78px;
+      left: 460px;
+
+      width: 29%; /* Will shrink image to 30% of its original width */
+      height: auto;
+    }
+
+    .in_air_cond_state_fig{
+      position: absolute;
+      top: 380px;
+      left: 460px;
+
+      width: 29%; /* Will shrink image to 30% of its original width */
+      height: auto;
+    }
+
+    .ex_temp_fig{
+      position: absolute;
+      top: 380px;
+      left: 30px;
+
+      width: 29%; /* Will shrink image to 30% of its original width */
+      height: auto;
+    }
+
   </style>
 </head>
 <body>
-  <form method ="post" action="/">
+  <form method ="post" action="/rangeChange/">
     <button class="min_up_btn" name="range_change_button" value="min_up"></button>
     <button class="max_up_btn" name="range_change_button" value="max_up"></button>
     <button class="min_down_btn" name="range_change_button" value="min_down"></button>
@@ -94,6 +176,27 @@
   {% if max %}
   <label class="max_lbl">{{max}}</label>
   {% endif %}
+
+  {% if in_temp %}
+  <label class="in_temp_lbl">{{in_temp}}</label>
+  {% endif %}
+
+  {% if in_hum %}
+  <label class="in_hum_lbl">{{in_hum}}</label>
+  {% endif %}
+
+  {% if in_air_cond_state %}
+  <label class="in_air_cond_state_lbl">{{in_air_cond_state}}</label>
+  {% endif %}
+
+  {% if ex_temp %}
+  <label class="ex_temp_lbl">{{ex_temp}}</label>
+  {% endif %}
+
+  <img class="in_temp_fig" src="{{url_for('inTempFigUpdate')}}">
+  <img class="in_hum_fig" src="{{url_for('inHumFigUpdate')}}">
+  <img class="in_air_cond_state_fig" src="{{url_for('inACSFigUpdate')}}">
+  <img class="ex_temp_fig" src="{{url_for('exTempFigUpdate')}}">
 
 </body>
 </html>

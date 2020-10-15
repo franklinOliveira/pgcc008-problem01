@@ -5,7 +5,7 @@ class Mqtt():
     dataSubscribed = [20,21]
 
     def __init__(self):
-        ROOT_PATH = "/home/pi/control-system/"
+        ROOT_PATH = "/home/franklin/Desktop/Projetos/pgcc008-problem01/control-system/"
         ROOT_CA_PATH = ROOT_PATH+"certificates/AmazonRootCA1.pem.txt"
         KEY_PATH = ROOT_PATH+"certificates/4d327b67ce-private.pem.key"
         CERT_PATH = ROOT_PATH+"certificates/4d327b67ce-certificate.pem.crt"
@@ -19,9 +19,10 @@ class Mqtt():
 
     def limitChangeCallback(self, client, userdata, message):
         if message.topic == "pgcc008/problem01/limit/min":
-            self.dataSubscribed[0] = float(message.payload.decode("utf-8"))
+            self.dataSubscribed[0] = int(message.payload.decode("utf-8"))
         else:
-            self.dataSubscribed[1] = float(message.payload.decode("utf-8"))
+            self.dataSubscribed[1] = int(message.payload.decode("utf-8"))
+        print(message.payload.decode("utf-8"),"lido de",message.topic)
 
     def connect(self):
         self.MQTTClient.connect()
@@ -31,3 +32,4 @@ class Mqtt():
 
     def publish(self, topic, data):
         self.MQTTClient.publish(topic, data, 1)
+        print(data, "publicado em", topic)
