@@ -34,18 +34,27 @@ class Controller:
 
         if self.current_in_temp != self.mqtt.dataSubscribed[0]:
             self.current_in_temp = self.mqtt.dataSubscribed[0]
+            print("[SERVER at", now.strftime("%H:%M:%S")+"] Internal temperature: "+str(self.current_in_temp)+"C")
             newData = True
 
         if self.current_in_hum != self.mqtt.dataSubscribed[1]:
             self.current_in_hum = self.mqtt.dataSubscribed[1]
+            print("[SERVER at", now.strftime("%H:%M:%S")+"] Internal humidity: "+str(self.current_in_hum)+"%")
             newData = True
 
         if self.current_in_air_cond_state != self.mqtt.dataSubscribed[2]:
             self.current_in_air_cond_state = self.mqtt.dataSubscribed[2]
+            if self.current_in_air_cond_state == 0:
+                print("[SERVER at", now.strftime("%H:%M:%S")+"] Air conditioning state: off")
+            elif self.current_in_air_cond_state == 1:
+                print("[SERVER at", now.strftime("%H:%M:%S")+"] Air conditioning state: heating")
+            elif self.current_in_air_cond_state == -1:
+                print("[SERVER at", now.strftime("%H:%M:%S")+"] Air conditioning state: cooling")
             newData = True
 
         if self.current_ex_temp != self.mqtt.dataSubscribed[3]:
             self.current_ex_temp = self.mqtt.dataSubscribed[3]
+            print("[SERVER at", now.strftime("%H:%M:%S")+"] External temperature: "+str(self.current_ex_temp)+"C")
             newData = True
 
         sample = [current_time, self.current_in_temp, self.current_in_hum, self.current_in_air_cond_state, self.current_ex_temp]
@@ -123,44 +132,63 @@ class Controller:
             ex_temp_axis.append(sample[4])
 
         plt.plot(time_axis, in_temp_axis)
+        plt.grid()
         plt.savefig(self.ROOT_PATH+"static/images/charts/in_temp.png", transparent=True)
         plt.clf()
 
         plt.plot(time_axis, ex_temp_axis)
+        plt.grid()
         plt.savefig(self.ROOT_PATH+"static/images/charts/ex_temp.png", transparent=True)
         plt.clf()
 
         plt.plot(time_axis, in_hum_axis)
+        plt.grid()
         plt.savefig(self.ROOT_PATH+"static/images/charts/in_hum.png", transparent=True)
         plt.clf()
 
         plt.plot(time_axis, in_air_cond_state_axis)
+        plt.grid()
         plt.savefig(self.ROOT_PATH+"static/images/charts/in_air_cond_state.png", transparent=True)
         plt.clf()
 
     def changeMinTemp(self, increase):
+        confirmation = False
         if increase is True:
             if (self.min_temp + 1) < self.max_temp:
                 self.min_temp = self.min_temp + 1
                 self.mqtt.publish("pgcc008/problem01/limit/min", self.min_temp)
-                return True
+                confirmation = True
         else:
             self.min_temp = self.min_temp - 1
             self.mqtt.publish("pgcc008/problem01/limit/min", self.min_temp)
-            return True
-        return False
+            confirmation = True
+
+        if confirmation is True:
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            print("[SERVER at", current_time+"] Internal temperature range: "+str(self.min_temp)+" to "+str(self.max_temp)+"C")
+
+        return confirmation
 
     def changeMaxTemp(self, increase):
+        confirmation = False
+
         if increase is True:
             self.max_temp = self.max_temp + 1
             self.mqtt.publish("pgcc008/problem01/limit/max", self.max_temp)
-            return True
+            confirmation = True
         else:
             if (self.max_temp - 1) > self.min_temp:
                 self.max_temp = self.max_temp - 1
                 self.mqtt.publish("pgcc008/problem01/limit/max", self.max_temp)
-                return True
-        return False
+                confirmation = True
+
+        if confirmation is True:
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            print("[SERVER at", current_time+"] Internal temperature range: "+str(self.min_temp)+" to "+str(self.max_temp)+"C")
+
+        return confirmation
 
     def getTempFormatted(self, variable):
         if variable == "MIN":

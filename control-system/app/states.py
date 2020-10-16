@@ -2,17 +2,22 @@
 
 import argparse
 import sys
+from datetime import datetime
 
 sys.path.append('/home/pi/control-system/interfaces')
 sys.path.append('/home/pi/control-system/sensors')
-from uart import Uart
+from simulatedEnvironment import SimulatedEnvironment
 from mqtt import Mqtt
+
+
 
 class States:
     current_in_temp = 20
-    air_cond_command = b'O'
-    min_temp = 20.0
-    max_temp = 21.0
+    current_in_hum = 0
+    current_ex_temp = 0
+    air_cond_command = 'O'
+    min_temp = 20
+    max_temp = 21
 
     mqtt = None
 
@@ -25,46 +30,63 @@ class States:
         self.mqtt.connect()
 
         if args["simulated"] == 1:
-            self.internalSensor = Uart()
+            self.internalSensor = SimulatedEnvironment()
             self.airCondControl = self.internalSensor
+            self.externalSensor = self.internalSensor
 
-        print("[INFO] Control System started")
-        print("  Internal temperature range: "+str(self.min_temp)+" to "+str(self.max_temp)+"C")
-        print("  Internal temperature: "+str(self.current_in_temp)+"C")
-        print("  Air conditioning state: off")
+        print("[DEVICE] Control System started")
 
     def readSensors(self):
-        dataReaded = self.mqtt.dataSubscribed[0]
-        if dataReaded != self.min_temp:
-            self.min_temp = dataReaded
-            print("[INFO] Min internal temperature: "+str(self.min_temp)+"C\t\tSubscribed from 'pgcc008/problem01/limit/min'")
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        newRange = False
 
-        dataReaded = self.mqtt.dataSubscribed[1]
-        if dataReaded != self.max_temp:
-            self.max_temp = dataReaded
-            print("[INFO] Max internal temperature: "+str(self.max_temp)+"C\t\tSubscribed from 'pgcc008/problem01/limit/max'")
+        newData = self.mqtt.dataSubscribed[0]
+        if newData != self.min_temp:
+            self.min_temp = newData
+            newRange = True
 
-        try:
-            dataReaded = float(self.internalSensor.read().decode("utf-8"))
-            if dataReaded != self.current_in_temp:
-                self.current_in_temp = dataReaded
-                self.mqtt.publish("pgcc008/problem01/sensor/internal/temperature", self.current_in_temp)
-                print("[INFO] Internal temperature: "+str(self.current_in_temp)+"C\t\tPublished in 'pgcc008/problem01/sensor/internal/temperature'")
-        except:
-            None
+        newData = self.mqtt.dataSubscribed[1]
+        if newData != self.max_temp:
+            self.max_temp = newData
+            newRange = True
+
+        if newRange is True:
+            print("[DEVICE at", current_time+"] Internal temperature range: "+str(self.min_temp)+" to "+str(self.max_temp)+"C")
+
+        next_in_temp = self.internalSensor.read("IN_TEMP")
+        if next_in_temp != self.current_in_temp:
+            self.current_in_temp = next_in_temp
+            self.mqtt.publish("pgcc008/problem01/sensor/internal/temperature", self.current_in_temp)
+            print("[DEVICE at", current_time+"] Internal temperature: "+str(self.current_in_temp)+"C")
+
+        next_in_hum = self.internalSensor.read("IN_HUM")
+        if next_in_hum != self.current_in_hum:
+            self.current_in_hum = next_in_hum
+            self.mqtt.publish("pgcc008/problem01/sensor/internal/humidity", self.current_in_hum)
+            print("[DEVICE at", current_time+"] Internal humidity: "+str(self.current_in_hum)+"%")
+
+        next_ex_temp = self.externalSensor.read("EX_TEMP")
+        if next_ex_temp != self.current_ex_temp:
+            self.current_ex_temp = next_ex_temp
+            self.mqtt.publish("pgcc008/problem01/sensor/external/temperature", self.current_ex_temp)
+            print("[DEVICE at", current_time+"] External temperature: "+str(self.current_ex_temp)+"C")
 
     def sendAirCondCommand(self, command):
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+
         self.air_cond_command = command
-
-        if self.air_cond_command == b'O':
-            print("[INFO] Air conditioning state: off")
-        elif self.air_cond_command == b'H':
-            print("[INFO] Air conditioning state: heating")
-        elif self.air_cond_command == b'C':
-            print("[INFO] Air conditioning state: cooling")
-
         self.airCondControl.write(self.air_cond_command)
+        self.mqtt.publish("pgcc008/problem01/sensor/internal/air_cond_state", self.air_cond_command)
+
+        if self.air_cond_command == 'O':
+            print("[DEVICE at", current_time+"] Air conditioning state: off")
+        elif self.air_cond_command == 'H':
+            print("[DEVICE at", current_time+"] Air conditioning state: heating")
+        elif self.air_cond_command == 'C':
+            print("[DEVICE at", current_time+"] Air conditioning state: cooling")
 
     def stop(self):
+        self.sendAirCondCommand('O')
         self.mqtt.disconnect()
-        self.sendAirCondCommand(b'O')

@@ -7,8 +7,11 @@ from flask import Flask, render_template, request, redirect, Response
 
 app = Flask(__name__)
 
-controller = Controller()
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
+controller = Controller()
 
 @app.route('/')
 def index():

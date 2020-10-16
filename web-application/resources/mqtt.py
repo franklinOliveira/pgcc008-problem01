@@ -22,8 +22,10 @@ class Mqtt():
     def dataChangeCallback(self, client, userdata, message):
         if message.topic == "pgcc008/problem01/sensor/internal/temperature":
             self.dataSubscribed[0] = float(message.payload.decode("utf-8"))
+
         elif message.topic == "pgcc008/problem01/sensor/internal/humidity":
             self.dataSubscribed[1] = float(message.payload.decode("utf-8"))
+
         elif message.topic == "pgcc008/problem01/sensor/internal/air_cond_state":
             self.dataSubscribed[2] = message.payload.decode("utf-8")
             if self.dataSubscribed[2] == 'O':
@@ -36,8 +38,6 @@ class Mqtt():
         elif message.topic == "pgcc008/problem01/sensor/external/temperature":
             self.dataSubscribed[3] = float(message.payload.decode("utf-8"))
 
-        print(message.payload.decode("utf-8"),"lido de",message.topic)
-
     def connect(self):
         self.MQTTClient.connect()
 
@@ -46,4 +46,3 @@ class Mqtt():
 
     def publish(self, topic, data):
         self.MQTTClient.publish(topic, data, 1)
-        print(data, "publicado em", topic)

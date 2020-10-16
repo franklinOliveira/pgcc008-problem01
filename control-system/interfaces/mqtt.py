@@ -5,7 +5,7 @@ class Mqtt():
     dataSubscribed = [20,21]
 
     def __init__(self):
-        ROOT_PATH = "/home/franklin/Desktop/Projetos/pgcc008-problem01/control-system/"
+        ROOT_PATH = "/home/pi/control-system/"
         ROOT_CA_PATH = ROOT_PATH+"certificates/AmazonRootCA1.pem.txt"
         KEY_PATH = ROOT_PATH+"certificates/4d327b67ce-private.pem.key"
         CERT_PATH = ROOT_PATH+"certificates/4d327b67ce-certificate.pem.crt"
@@ -14,15 +14,15 @@ class Mqtt():
         self.MQTTClient.configureEndpoint("a18jmvtsiq4e9v-ats.iot.us-east-1.amazonaws.com", 8883)
         self.MQTTClient.configureCredentials(ROOT_CA_PATH, KEY_PATH, CERT_PATH)
 
-        self.MQTTClient.subscribe("pgcc008/problem01/limit/max", 0, self.limitChangeCallback)
-        self.MQTTClient.subscribe("pgcc008/problem01/limit/min", 0, self.limitChangeCallback)
+        self.MQTTClient.subscribe("pgcc008/problem01/limit/max", 0, self.dataChangeCallback)
+        self.MQTTClient.subscribe("pgcc008/problem01/limit/min", 0, self.dataChangeCallback)
 
-    def limitChangeCallback(self, client, userdata, message):
+
+    def dataChangeCallback(self, client, userdata, message):
         if message.topic == "pgcc008/problem01/limit/min":
             self.dataSubscribed[0] = int(message.payload.decode("utf-8"))
-        else:
+        elif message.topic == "pgcc008/problem01/limit/max":
             self.dataSubscribed[1] = int(message.payload.decode("utf-8"))
-        print(message.payload.decode("utf-8"),"lido de",message.topic)
 
     def connect(self):
         self.MQTTClient.connect()
@@ -32,4 +32,3 @@ class Mqtt():
 
     def publish(self, topic, data):
         self.MQTTClient.publish(topic, data, 1)
-        print(data, "publicado em", topic)
