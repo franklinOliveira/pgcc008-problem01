@@ -7,9 +7,8 @@ from datetime import datetime
 sys.path.append('/home/pi/control-system/interfaces')
 sys.path.append('/home/pi/control-system/sensors')
 from simulatedEnvironment import SimulatedEnvironment
+from dht22 import Dht22
 from mqtt import Mqtt
-
-
 
 class States:
     current_in_temp = 20
@@ -29,10 +28,26 @@ class States:
         self.mqtt = Mqtt()
         self.mqtt.connect()
 
+
         if args["simulated"] == 1:
-            self.internalSensor = SimulatedEnvironment()
+            self.internalSensor = SimulatedEnvironment(None)
+            self.internalSensor.start()
             self.airCondControl = self.internalSensor
             self.externalSensor = self.internalSensor
+        elif args["simulated"] == 2:
+            self.internalSensor = SimulatedEnvironment(Dht22(22))
+            self.internalSensor.start()
+            self.airCondControl = self.internalSensor
+            self.externalSensor = Dht22(23)
+            self.externalSensor.start()
+        else:
+            self.internalSensor = Dht22(22)
+            self.internalSensor.start()
+            self.airCondControl = SimulatedEnvironment(None)
+            self.airCondControl.start()
+            self.externalSensor = Dht22(23)
+            self.externalSensor.start()
+
 
         print("[DEVICE] Control System started")
 
@@ -89,4 +104,7 @@ class States:
 
     def stop(self):
         self.sendAirCondCommand('O')
+        self.internalSensor.stopRead()
+        self.externalSensor.stopRead()
+        self.airCondControl.stopRead()
         self.mqtt.disconnect()

@@ -31,4 +31,7 @@ class Mqtt():
         self.MQTTClient.disconnect()
 
     def publish(self, topic, data):
-        self.MQTTClient.publish(topic, data, 1)
+        try:
+            self.MQTTClient.publish(topic, data, 1)
+        except:
+            None
