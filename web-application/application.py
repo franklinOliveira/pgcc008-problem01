@@ -64,4 +64,4 @@ def figureGenerator(figureName):
         None
 
 if __name__ == '__main__':
-    app.run('localhost', 5000 ,use_reloader=True, use_debugger=True, use_evalex=True, debug=True)
+    app.run('localhost', 8000 ,use_reloader=True, use_debugger=True, use_evalex=True, debug=True)

@@ -15,6 +15,8 @@ class Controller:
     current_ex_temp = 0
     daily_samples = list()
 
+    simulation_data = list()
+
     mqtt = None
 
     ROOT_PATH = "/home/franklin/Desktop/Projetos/pgcc008-problem01/web-application/"
@@ -22,15 +24,25 @@ class Controller:
     def __init__(self):
         self.mqtt = Mqtt()
         self.mqtt.connect()
-
-        today = date.today()
-        day = today.strftime("%Y/%m/%d")
-        self.loadData(day)
+        self.loadData()
+        self.loadSimulation()
 
     def refreshData(self):
         now = datetime.now()
         current_time = int(now.strftime("%H")) + (float((int(now.strftime("%M")) * 60) + int(now.strftime("%S")))/3600.0)
         newData = False
+
+        if len(self.simulation_data) > 0:
+            if self.simulation_data[0][0] == now.strftime("%H:%M:%S"):
+                self.min_temp = self.simulation_data[0][1]
+                self.max_temp = self.simulation_data[0][2]
+
+                self.mqtt.publish("pgcc008/problem01/limit/min", self.min_temp)
+                self.mqtt.publish("pgcc008/problem01/limit/max", self.max_temp)
+
+                print("[SERVER at", now.strftime("%H:%M:%S")+"] Internal temperature range: "+str(self.min_temp)+" to "+str(self.max_temp)+"C")
+
+                del(self.simulation_data[0])
 
         if self.current_in_temp != self.mqtt.dataSubscribed[0]:
             self.current_in_temp = self.mqtt.dataSubscribed[0]
@@ -63,8 +75,6 @@ class Controller:
         if newData == True or int(now.strftime("%S")) == 0:
             self.plotCharts()
 
-
-
     def saveData(self, sample):
         today = date.today()
         current_date = today.strftime("%Y/%m/%d")
@@ -84,7 +94,9 @@ class Controller:
         self.daily_samples.append(sample)
 
 
-    def loadData(self, day):
+    def loadData(self):
+        today = date.today()
+        day = today.strftime("%Y/%m/%d")
         path = self.ROOT_PATH +"files/"+day.replace('/', '-')+".csv"
 
         self.daily_samples = list()
@@ -100,20 +112,16 @@ class Controller:
                         sample = [float(row[0]), float(row[1]), float(row[2]), int(row[3]), float(row[4])]
                         self.daily_samples.append(sample)
 
-                today = date.today()
-                current_date = today.strftime("%Y/%m/%d")
+                nSamples = len(self.daily_samples)
+                self.current_in_temp = self.daily_samples[nSamples - 1][1]
+                self.current_in_hum = self.daily_samples[nSamples - 1][2]
+                self.current_in_air_cond_state = self.daily_samples[nSamples - 1][3]
+                self.current_ex_temp = self.daily_samples[nSamples - 1][4]
 
-                if day == current_date:
-                    nSamples = len(self.daily_samples)
-                    self.current_in_temp = self.daily_samples[nSamples - 1][1]
-                    self.current_in_hum = self.daily_samples[nSamples - 1][2]
-                    self.current_in_air_cond_state = self.daily_samples[nSamples - 1][3]
-                    self.current_ex_temp = self.daily_samples[nSamples - 1][4]
-
-                    self.mqtt.dataSubscribed[0] = self.current_in_temp
-                    self.mqtt.dataSubscribed[1] = self.current_in_hum
-                    self.mqtt.dataSubscribed[2] = self.current_in_air_cond_state
-                    self.mqtt.dataSubscribed[3] = self.current_ex_temp
+                self.mqtt.dataSubscribed[0] = self.current_in_temp
+                self.mqtt.dataSubscribed[1] = self.current_in_hum
+                self.mqtt.dataSubscribed[2] = self.current_in_air_cond_state
+                self.mqtt.dataSubscribed[3] = self.current_ex_temp
 
                 self.plotCharts()
 
@@ -150,6 +158,21 @@ class Controller:
         plt.grid()
         plt.savefig(self.ROOT_PATH+"static/images/charts/in_air_cond_state.png", transparent=True)
         plt.clf()
+
+    def loadSimulation(self):
+        path = self.ROOT_PATH +"files/simulation.csv"
+
+        if os.path.isfile(path):
+            with open(path, 'r') as file:
+                file_reader = csv.reader(file)
+                firstRead = True
+
+                for row in file_reader:
+                    if firstRead is True:
+                        firstRead = False
+                    else:
+                        sample = [row[0], int(row[1]), int(row[2])]
+                        self.simulation_data.append(sample)
 
     def changeMinTemp(self, increase):
         confirmation = False
