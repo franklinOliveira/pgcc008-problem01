@@ -6,11 +6,13 @@ import csv
 from datetime import datetime
 
 
+#Control system states
 states = States()
 
 #Finish button (3V3)
 F_button_pin = 13
-#Door button (3V3)
+
+#Door simulation (3V3)
 D_button_pin = 18
 
 #Ignore warning
@@ -21,12 +23,13 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setup(F_button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(D_button_pin, GPIO.OUT)
 
+#Starts with door closed
 GPIO.output(D_button_pin, GPIO.HIGH)
 
 def main():
+    #Loads simulation file and define a automatic interaction routine
     path = "simulation.csv"
     simulation_data = list()
-
     if os.path.isfile(path):
         with open(path, 'r') as file:
             file_reader = csv.reader(file)
@@ -39,11 +42,14 @@ def main():
                     sample = row[0]
                     simulation_data.append(sample)
 
-    currentState = 'O'
+    #Starts on off state
+    currentState = "off"
     while True:
+        #Checks if automatic routine is enabled
         if len(simulation_data) > 0:
             now = datetime.now()
 
+            #Checks if is time to open/close the door
             if simulation_data[0] == now.strftime("%H:%M:%S"):
                 print("[DEVICE at", now.strftime("%H:%M:%S")+"] Door state changed")
                 GPIO.output(D_button_pin, GPIO.LOW)
@@ -52,17 +58,20 @@ def main():
                 del(simulation_data[0])
 
         previousState = currentState
+
+        #Reads all sensors
         states.readSensors()
 
+        #Checks control state
         if states.current_in_temp >= states.min_temp and states.current_in_temp <= states.max_temp:
-            currentState = 'O'
+            currentState = "off"
         elif states.current_in_temp < states.min_temp:
-            currentState = 'H'
+            currentState = "heating"
         elif states.current_in_temp > states.max_temp:
-            currentState = 'C'
+            currentState = "cooling"
 
-        if currentState != previousState:
-            states.sendAirCondCommand(currentState)
+        #Sends control state to air conditioner
+        states.sendAirCondCommand(currentState)
 
         if GPIO.input(F_button_pin) == GPIO.LOW:
             break

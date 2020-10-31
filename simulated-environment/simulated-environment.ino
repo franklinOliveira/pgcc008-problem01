@@ -7,13 +7,14 @@
 #define door_mod D5
 SoftwareSerial ControlSystem(D2, D1); //rx, tx
 
-//Off ('O'), Heating ('H') or Cooling ('C')
-char air_cond_command = 'O';
+//Sets the heating/cooling rate of the air conditioner
+float air_cond_interaction = 0.0;
 //Open (0) or Closed (1)
 bool door_state = 1;
 //Stopped (0), Heating (> 0) or Cooling (< 0)
 float temp_change_rate = 0.0;
 
+//Current temperature inside the safe box
 float current_temp = 20.0;
 
 void setup() {
@@ -24,18 +25,18 @@ void setup() {
   pinMode(door_state_led, OUTPUT);
   pinMode(cooling_led, OUTPUT);
   attachInterrupt(digitalPinToInterrupt(door_mod), doorModDetectISR, RISING);  
-
 }
 
+//Simulated environment routine
 void loop() {
   checkAirCond();
   calculeCurrentTemp();
   controlLeds();
-  debugDisplay();
   ControlSystem.print(current_temp);
   delay(1000);
 }
 
+//Captures the opening of the door through the button state transition
 ICACHE_RAM_ATTR void doorModDetectISR() {
   if (door_state == 0)
     door_state = 1;
@@ -43,24 +44,18 @@ ICACHE_RAM_ATTR void doorModDetectISR() {
     door_state = 0;
 }
 
+//Takes the heating/cooling rate of the control system
 void checkAirCond(){
-  if(ControlSystem.available() > 0){
-    char incomingByte = ControlSystem.read();
-    
-    if(incomingByte == 'O' || incomingByte == 'H' || incomingByte == 'C')
-      air_cond_command = incomingByte;
-  }
-  
+  if(ControlSystem.available() > 0)
+    air_cond_interaction = ControlSystem.readString().toFloat();
+
 }
 
+//Calculates the current temperatur
 void calculeCurrentTemp(){
-  if(air_cond_command == 'O')
-    temp_change_rate = 0.0;
-  else if(air_cond_command == 'H')
-    temp_change_rate = 1.0;
-  else if(air_cond_command == 'C')
-    temp_change_rate = -1.0;
-
+  float previous_temp = current_temp;
+  
+  temp_change_rate = air_cond_interaction;
   if(door_state == 0 && current_temp < 25.0)
     temp_change_rate+=0.1;
   else if(door_state == 0 && current_temp > 25.0)
@@ -69,45 +64,22 @@ void calculeCurrentTemp(){
   current_temp+=(temp_change_rate/60.0);
 }
 
-void debugDisplay(){
-  Serial.print("Door situation: ");
-  if(door_state == 0)
-    Serial.print("open | ");
-  else
-    Serial.print("closed | ");
-    
-  Serial.print("Air conditioning situation: ");
-  if(air_cond_command == 'O')
-    Serial.print("off | ");
-  else if(air_cond_command == 'H')
-    Serial.print("heating | ");
-  else if(air_cond_command == 'C')
-    Serial.print("cooling | ");
-
-  Serial.print("Temperature change rate: ");
-  Serial.print(temp_change_rate);
-  Serial.print("ºC/min | ");
-
-  Serial.print("Current temperature: ");
-  Serial.print(current_temp);
-  Serial.println("ºC");
-}
-
+//Controls the activity indicator leds of the simulated environment
 void controlLeds(){
   if(door_state == 0)
     digitalWrite(door_state_led, HIGH);
   else
     digitalWrite(door_state_led, LOW);
 
-  if(air_cond_command == 'O'){
+  if(air_cond_interaction == 0.0){
     digitalWrite(heating_led, LOW);
     digitalWrite(cooling_led, LOW);
   }
-  else if(air_cond_command == 'H'){
+  else if(air_cond_interaction > 0.0){
     digitalWrite(heating_led, HIGH);
     digitalWrite(cooling_led, LOW);
   }
-  else if(air_cond_command == 'C'){
+  else if(air_cond_interaction < 0.0){
     digitalWrite(heating_led, LOW);
     digitalWrite(cooling_led, HIGH);
   }

@@ -4,11 +4,12 @@
   <meta http-equiv="refresh" content="1">
 
   <style>
+    /*Defines background layout*/
     body {
       background-image: url('/static/images/background/layout.svg');
       background-repeat: no-repeat;
     }
-
+    /*Defines minimum temperature control button up (increase)*/
     .min_up_btn {
       position: absolute;
       top: 470px;
@@ -20,7 +21,7 @@
       background-repeat: no-repeat;
       border-color: #FFFFFF;
     }
-
+    /*Defines maximum temperature control button up (increase)*/
     .max_up_btn {
       position: absolute;
       top: 470px;
@@ -32,7 +33,7 @@
       background-repeat: no-repeat;
       border-color: #FFFFFF;
     }
-
+    /*Defines minimum temperature control button down (decrease)*/
     .min_down_btn {
       position: absolute;
       top: 578px;
@@ -44,7 +45,7 @@
       background-repeat: no-repeat;
       border-color: #FFFFFF;
     }
-
+    /*Defines maximum temperature control button down (decrease)*/
     .max_down_btn {
       position: absolute;
       top: 578px;
@@ -56,7 +57,7 @@
       background-repeat: no-repeat;
       border-color: #FFFFFF;
     }
-
+    /*Defines minimum temperature label*/
     .min_lbl{
       position: absolute;
       top: 521px;
@@ -67,7 +68,7 @@
       font-weight: bold;
       color: #2899FC;
     }
-
+    /*Defines maximum temperature label*/
     .max_lbl{
       position: absolute;
       top: 521px;
@@ -78,7 +79,7 @@
       font-weight: bold;
       color: #2899FC;
     }
-
+    /*Defines current internal temperature label*/
     .in_temp_lbl{
       position: absolute;
       top: 255px;
@@ -89,7 +90,7 @@
       font-weight: bold;
       color: #2899FC;
     }
-
+    /*Defines current internal humidity label*/
     .in_hum_lbl{
       position: absolute;
       top: 255px;
@@ -100,7 +101,7 @@
       font-weight: bold;
       color: #2899FC;
     }
-
+    /*Defines current internal air conditioner state label*/
     .in_air_cond_state_lbl{
       position: absolute;
       top: 255px;
@@ -111,7 +112,7 @@
       font-weight: bold;
       color: #2899FC;
     }
-
+    /*Defines current external temperature label*/
     .ex_temp_lbl{
       position: absolute;
       top: 255px;
@@ -122,46 +123,48 @@
       font-weight: bold;
       color: #2899FC;
     }
-
+    /*Defines current internal temperature graph*/
     .in_temp_fig{
       position: absolute;
       top: 78px;
       left: 30px;
 
-      width: 29%; /* Will shrink image to 30% of its original width */
+      width: 29%;
       height: auto;
     }
-
+    /*Defines current internal humidity graph*/
     .in_hum_fig{
       position: absolute;
       top: 78px;
       left: 460px;
 
-      width: 29%; /* Will shrink image to 30% of its original width */
+      width: 29%;
       height: auto;
     }
-
+    /*Defines current internal air conditioner state graph*/
     .in_air_cond_state_fig{
       position: absolute;
       top: 380px;
       left: 460px;
 
-      width: 29%; /* Will shrink image to 30% of its original width */
+      width: 29%;
       height: auto;
     }
-
+    /*Defines current external temperature graph*/
     .ex_temp_fig{
       position: absolute;
       top: 380px;
       left: 30px;
 
-      width: 29%; /* Will shrink image to 30% of its original width */
+      width: 29%;
       height: auto;
     }
 
   </style>
 </head>
 <body>
+
+  <!--Temperature range change form-->
   <form method ="post" action="/rangeChange/">
     <button class="min_up_btn" name="range_change_button" value="min_up"></button>
     <button class="max_up_btn" name="range_change_button" value="max_up"></button>
@@ -169,35 +172,30 @@
     <button class="max_down_btn" name="range_change_button" value="max_down"></button>
   </form>
 
+  <!--Sensors numeric view variables-->
   {% if min %}
   <label class="min_lbl">{{min}}</label>
   {% endif %}
-
   {% if max %}
   <label class="max_lbl">{{max}}</label>
   {% endif %}
-
   {% if in_temp %}
   <label class="in_temp_lbl">{{in_temp}}</label>
   {% endif %}
-
   {% if in_hum %}
   <label class="in_hum_lbl">{{in_hum}}</label>
   {% endif %}
-
   {% if in_air_cond_state %}
   <label class="in_air_cond_state_lbl">{{in_air_cond_state}}</label>
   {% endif %}
-
   {% if ex_temp %}
   <label class="ex_temp_lbl">{{ex_temp}}</label>
   {% endif %}
 
+  <!--Sensors graph view variables-->
   <img class="in_temp_fig" src="{{url_for('inTempFigUpdate')}}">
   <img class="in_hum_fig" src="{{url_for('inHumFigUpdate')}}">
   <img class="in_air_cond_state_fig" src="{{url_for('inACSFigUpdate')}}">
   <img class="ex_temp_fig" src="{{url_for('exTempFigUpdate')}}">
-
-
 </body>
 </html>
