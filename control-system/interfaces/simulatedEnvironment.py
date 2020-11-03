@@ -49,7 +49,7 @@ class SimulatedEnvironment(Thread):
                     if abs(self.inHum_exTemp[i] - self.previous_inHum_exTemp[i]) <= 2.5:
                         self.inHum_exTemp[i] = self.previous_inHum_exTemp[i]
                     else:
-                    self.previous_inHum_exTemp[i] = self.inHum_exTemp[i]
+                        self.previous_inHum_exTemp[i] = self.inHum_exTemp[i]
 
             #Reads internal humidity and external temperature from DHT22
             else:

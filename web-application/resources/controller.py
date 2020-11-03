@@ -21,8 +21,6 @@ class Controller:
 
     #Daily sensors sample
     daily_samples = list()
-    #Automatic routine data
-    simulation_data = list()
 
     #MQTT client
     mqtt = None
@@ -37,7 +35,6 @@ class Controller:
 
         #Stats loading data
         self.loadData()
-        self.loadSimulation()
 
     #Refresh all data readed to a new sample
     def refreshData(self):
@@ -47,17 +44,6 @@ class Controller:
 
         #Data update check
         newData = False
-
-        #Checks if automatic routine is enabled
-        if len(self.simulation_data) > 0:
-            #Checks if is time to change temperature range
-            if self.simulation_data[0][0] == current_time:
-                self.min_temp = self.simulation_data[0][1]
-                self.max_temp = self.simulation_data[0][2]
-                self.mqtt.publish("pgcc008/problem01/limit/min", self.min_temp)
-                self.mqtt.publish("pgcc008/problem01/limit/max", self.max_temp)
-                print("[SERVER at", current_time+"] Internal temperature range: "+str(self.min_temp)+" to "+str(self.max_temp)+"C")
-                del(self.simulation_data[0])
 
         #Checks current internal temperature changes and updates
         if self.current_in_temp != self.mqtt.dataSubscribed[0]:
@@ -115,7 +101,6 @@ class Controller:
             file_writer = csv.writer(file)
             if fileExists is False:
                 file_writer.writerow(["time", "in_temp", "in_hum", "in_air_cond_state", "ex_temp"])
-                file_writer.writerow([sample[0], 0.0, 0.0, 0.0, 0.0])
             file_writer.writerow(sample)
 
         #Saves sample
@@ -195,22 +180,6 @@ class Controller:
         plt.grid()
         plt.savefig(self.ROOT_PATH+"static/images/charts/in_air_cond_state.png", transparent=True)
         plt.clf()
-
-    #Loads simulation file and define a automatic interaction routine
-    def loadSimulation(self):
-        path = self.ROOT_PATH +"files/simulation.csv"
-
-        if os.path.isfile(path):
-            with open(path, 'r') as file:
-                file_reader = csv.reader(file)
-                firstRead = True
-
-                for row in file_reader:
-                    if firstRead is True:
-                        firstRead = False
-                    else:
-                        sample = [row[0], int(row[1]), int(row[2])]
-                        self.simulation_data.append(sample)
 
     #Increase or decrease minimum temperature
     def changeMinTemp(self, increase):
